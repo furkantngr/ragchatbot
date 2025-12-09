@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yönetici Paneli - AI Kontrol</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #7c3aed;
+            --primary-dark: #6d28d9;
+            --bg-gradient: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+            --white: #ffffff;
+            --text-dark: #1e293b;
+            --text-gray: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --purple: #9333ea;
+            --orange: #f97316;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-image: var(--bg-gradient);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+
+        /* --- ORTAK KART STİLİ --- */
+        .card {
+            background: var(--white);
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            padding: 40px;
+            text-align: center;
+            border: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        h2 { margin: 0 0 10px 0; font-size: 24px; font-weight: 700; color: #4c1d95; }
+        p.subtitle { color: var(--text-gray); font-size: 14px; margin-bottom: 30px; }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 15px;
+            border: 2px solid #f1f5f9;
+            border-radius: 12px;
+            outline: none;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: all 0.2s;
+            background-color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+        }
+        input:focus, textarea:focus, select:focus { border-color: #8b5cf6; background-color: #fff; }
+
+        textarea {
+            resize: vertical;
+            min-height: 200px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            line-height: 1.5;
+            color: #334155;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(124, 58, 237, 0.25);
+        }
+        button:hover { transform: translateY(-1px); box-shadow: 0 10px 15px -3px rgba(124, 58, 237, 0.35); }
+        button:active { transform: scale(0.98); }
+        button:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* --- LOGIN EKRANI --- */
+        #login-screen { width: 380px; }
+        .icon-header {
+            width: 70px; height: 70px;
+            background: linear-gradient(135deg, #8b5cf6, #d946ef);
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 24px auto;
+            box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.3);
+        }
+        .icon-header svg { width: 32px; height: 32px; fill: none; stroke: white; stroke-width: 2; }
+
+        /* --- DASHBOARD (PANEL) --- */
+        #dashboard { display: none; width: 1000px; max-width: 95%; margin-top: 40px; height: 90vh; overflow-y: auto; padding-bottom: 50px; }
+        
+        .dash-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .logout-btn {
+            background: transparent; color: var(--danger); box-shadow: none; width: auto; padding: 8px 16px;
+        }
+        .logout-btn:hover { background: #fef2f2; transform: none; }
+
+        /* TABS (SEKMELER) */
+        .tabs { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+        .tab-btn {
+            background: #f1f5f9; color: var(--text-gray); box-shadow: none;
+            border: 1px solid var(--border); width: auto; padding: 10px 20px;
+        }
+        .tab-btn.active {
+            background: var(--primary); color: white; border-color: var(--primary);
+            box-shadow: 0 4px 6px -1px rgba(124, 58, 237, 0.25);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* KART BÖLÜMLERİ */
+        .section { background: white; border-radius: 16px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: left; border: 1px solid #f1f5f9; }
+        .section h3 { margin-top: 0; font-size: 16px; color: #4c1d95; border-bottom: 2px solid #f3f4f6; padding-bottom: 10px; margin-bottom: 15px; display: flex; align-items: center; }
+        
+        .badge { font-size: 11px; padding: 4px 8px; border-radius: 12px; color: white; font-weight: bold; margin-left: 10px; }
+        .badge-live { background: var(--success); }
+        .badge-draft { background: var(--warning); }
+
+        /* DOSYA LİSTESİ */
+        .file-item { 
+            background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 8px; 
+            display: flex; justify-content: space-between; align-items: center; font-size: 14px;
+            transition: transform 0.2s;
+        }
+        .file-item:hover { border-color: #a78bfa; }
+        
+        .file-meta {
+            font-size: 12px; color: var(--text-gray); margin-top: 4px; display: flex; gap: 10px;
+        }
+        .file-meta span { margin-right: 10px; color: var(--text-gray); font-size: 12px; }
+        
+        .action-btn { 
+            padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; color: white; 
+            font-size: 12px; margin-left: 5px; width: auto; box-shadow: none;
+        }
+        .btn-approve { background-color: var(--success); }
+        .btn-delete { background-color: var(--danger); }
+        .btn-save { background-color: var(--primary); width: auto; padding: 10px 30px; }
+        
+        /* UPLOAD ALANI */
+        .upload-row { display: flex; gap: 10px; align-items: center; background: #f8fafc; padding: 15px; border-radius: 12px; border: 2px dashed #cbd5e1; }
+        .upload-row input { margin: 0; border: none; background: transparent; }
+        .btn-upload { background: var(--primary); width: auto; padding: 8px 24px; margin: 0; box-shadow: none; }
+
+        /* MODEL KARTI */
+        .model-card { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .model-icon { font-size: 24px; }
+        .model-info h4 { margin: 0; color: #166534; font-size: 16px; }
+        .model-info p { margin: 0; font-size: 13px; color: #15803d; }
+
+        /* LOGLAR */
+        .log-item {
+            font-size: 13px; padding: 10px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between;
+        }
+        .log-action { font-weight: 600; text-transform: uppercase; }
+        .log-action.upload { color: var(--success); }
+        .log-action.delete { color: var(--danger); }
+        .log-action.process { color: var(--info); }
+        .log-action.unpublish { color: var(--warning); }
+        .log-action.update_prompt { color: var(--orange); }
+        .log-action.change_model { color: var(--purple); }
+
+        /* BİLDİRİM */
+        #notification {
+            position: fixed; top: 20px; right: 20px;
+            padding: 15px 25px; border-radius: 12px; background: white;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            display: none; font-weight: 500; animation: slideIn 0.3s; z-index: 1000;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    </style>
+</head>
+<body>
+
+    <div id="notification"></div>
+
+    <!-- GİRİŞ EKRANI -->
+    <div id="login-screen" class="card">
+        <div class="icon-header">
+            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg>
+        </div>
+        <h2>Yönetici Girişi</h2>
+        <p class="subtitle">Panele erişmek için giriş yapın.</p>
+        <input type="text" id="loginUser" placeholder="Kullanıcı Adı" onkeypress="handleEnter(event)">
+        <input type="password" id="loginPass" placeholder="Şifre" onkeypress="handleEnter(event)">
+        <button onclick="login()" id="loginBtn">Giriş Yap</button>
+        <div id="loginStatus" style="margin-top:15px; font-size:13px; color:var(--danger);"></div>
+    </div>
+
+    <!-- PANEL -->
+    <div id="dashboard" class="card">
+        <div class="dash-header">
+            <div style="text-align: left;">
+                <h2 style="border:none; padding:0; margin:0;">⚙️ Yönetim Paneli</h2>
+                <p class="subtitle" style="margin:0">Belgeleri ve yapay zeka ayarlarını yönetin.</p>
+            </div>
+            <button class="logout-btn" onclick="logout()">Çıkış Yap</button>
+        </div>
+
+        <!-- SEKME BUTONLARI -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('files', this)">📂 Dosyalar</button>
+            <button class="tab-btn" onclick="switchTab('prompt', this)">📝 Prompt</button>
+            <button class="tab-btn" onclick="switchTab('model', this)">🤖 Model</button>
+            <button class="tab-btn" onclick="switchTab('logs', this)">📜 Loglar</button>
+        </div>
+
+        <!-- SEKME 1: DOSYALAR -->
+        <div id="tab-files" class="tab-content active">
+            <div class="section">
+                <h3>📤 Yeni Dosya Yükle</h3>
+                <div class="upload-row">
+                    <input type="file" id="fileInput" accept=".pdf">
+                    <button class="btn-upload" onclick="uploadFile()">Taslağa Yükle</button>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏳ Onay Bekleyenler <span class="badge badge-draft">Taslak</span></h3>
+                <div id="stagingList">Yükleniyor...</div>
+            </div>
+
+            <div class="section">
+                <h3>✅ Yayındaki Belgeler <span class="badge badge-live">Canlı</span></h3>
+                <div id="prodList">Yükleniyor...</div>
+            </div>
+        </div>
+
+        <!-- SEKME 2: PROMPT -->
+        <div id="tab-prompt" class="tab-content">
+            <div class="section">
+                <h3>📝 Yapay Zeka Talimatları (System Prompt)</h3>
+                
+                <!-- YENİ: Prompt Seçimi -->
+                <div style="margin-bottom: 15px; display:flex; gap:15px; align-items:center; background:#f0f9ff; padding:10px; border-radius:8px;">
+                    <span style="font-weight:600; color:#0369a1;">Düzenlenecek Mod:</span>
+                    <label style="cursor:pointer; display:flex; align-items:center; gap:5px;">
+                        <input type="radio" name="promptType" value="fast" checked onchange="loadPrompt()"> 
+                        ⚡ Hızlı Mod
+                    </label>
+                    <label style="cursor:pointer; display:flex; align-items:center; gap:5px;">
+                        <input type="radio" name="promptType" value="thinking" onchange="loadPrompt()"> 
+                        🧠 Düşünen Mod
+                    </label>
+                </div>
+
+                <p style="font-size:13px; color:var(--text-gray);">
+                    Botun kişiliğini, kurallarını ve cevap verme şeklini buradan değiştirebilirsiniz. 
+                    <b>{context}</b> ve <b>{question}</b> etiketlerini SİLMEYİN.
+                </p>
+                <textarea id="promptEditor" placeholder="Prompt yükleniyor..."></textarea>
+                <div style="text-align:right; margin-top:10px;">
+                    <button class="btn-save" onclick="savePrompt()">Kaydet ve Uygula</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEKME 3: MODEL -->
+        <div id="tab-model" class="tab-content">
+            <div class="section">
+                <h3>🤖 Yapay Zeka Modeli Seçimi</h3>
+                <div class="model-card">
+                    <div class="model-icon">🚀</div>
+                    <div class="model-info">
+                        <h4>Aktif Model</h4>
+                        <p id="currentModelDisplay">Yükleniyor...</p>
+                    </div>
+                </div>
+                <label style="font-weight:600; font-size:14px;">Mevcut Modeller (Ollama):</label>
+                <select id="modelSelect"><option>Yükleniyor...</option></select>
+                <div style="margin-top:15px; text-align:right;">
+                    <button class="btn-save" onclick="saveModel()">Modeli Değiştir</button>
+                </div>
+                <p style="font-size:12px; color:#64748b; margin-top:10px;">Not: Model değişimi 5-10 saniye sürebilir. Sohbet geçmişi etkilenmez.</p>
+            </div>
+        </div>
+
+        <!-- SEKME 4: LOGLAR -->
+        <div id="tab-logs" class="tab-content">
+            <div class="section">
+                <h3>📜 Son İşlemler</h3>
+                <div id="logsList" style="max-height: 400px; overflow-y: auto;">Yükleniyor...</div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // --- API AYARLARI ---
+    const API_BASE = 'http://10.90.110.18:8001'; 
+    let CREDENTIALS = null;
+
+    function handleEnter(e) { if(e.key === 'Enter') login(); }
+
+    function notify(msg, color) {
+        const n = document.getElementById('notification');
+        n.innerText = msg; n.style.color = color; n.style.borderLeft = `5px solid ${color}`;
+        n.style.display = 'block'; setTimeout(() => n.style.display = 'none', 3000);
+    }
+
+    function switchTab(id, btn) {
+        document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
+        document.getElementById('tab-' + id).classList.add('active');
+        btn.classList.add('active');
+        if(id === 'files') refreshFiles();
+        if(id === 'prompt') loadPrompt();
+        if(id === 'model') loadModelInfo();
+        if(id === 'logs') loadLogs();
+    }
+
+    async function login() {
+        const u = document.getElementById('loginUser').value.trim();
+        const p = document.getElementById('loginPass').value.trim();
+        const btn = document.getElementById('loginBtn');
+        const status = document.getElementById('loginStatus');
+
+        if(!u || !p) { status.innerText = "Lütfen bilgileri girin."; return; }
+
+        const fd = new FormData(); fd.append('username', u); fd.append('password', p);
+        btn.disabled = true; btn.innerText = "Kontrol ediliyor..."; status.innerText = "";
+
+        try {
+            const res = await fetch(`${API_BASE}/api/login`, { method: 'POST', body: fd });
+            if(res.ok) {
+                CREDENTIALS = fd;
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                refreshFiles();
+            } else { status.innerText = "Hatalı kullanıcı adı veya şifre."; }
+        } catch { status.innerText = "Sunucuya bağlanılamadı."; } 
+        finally { btn.disabled = false; btn.innerText = "Giriş Yap"; }
+    }
+
+    function logout() { location.reload(); }
+
+    // --- DOSYALAR ---
+    function refreshFiles() {
+        loadList('/api/list-files', 'stagingList', 'staging');
+        loadList('/api/list-production-files', 'prodList', 'production');
+    }
+
+    async function loadList(endpoint, divId, type) {
+        const div = document.getElementById(divId);
+        try {
+            const res = await fetch(API_BASE + endpoint, { method: 'POST', body: CREDENTIALS });
+            const data = await res.json();
+            if(data.files.length === 0) { div.innerHTML = "<div style='color:#999; font-size:13px; padding:10px;'>Boş.</div>"; return; }
+            div.innerHTML = data.files.map(f => `
+                <div class="file-item">
+                    <div style="font-weight:600;">📄 ${f}</div>
+                    <div>
+                        ${type === 'staging' ? 
+                            `<button class="action-btn btn-approve" onclick="processFile('${f}')">Yayınla</button>
+                             <button class="action-btn btn-delete" onclick="deleteFile('${f}', 'staging')">Sil</button>` : 
+                            `<button class="action-btn btn-delete" onclick="deleteFile('${f}', 'production')">Yayından Kaldır</button>`}
+                    </div>
+                </div>`).join('');
+        } catch { div.innerHTML = "Hata."; }
+    }
+
+    async function uploadFile() {
+        const input = document.getElementById('fileInput');
+        if(!input.files[0]) return notify("Dosya seçin", "red");
+        const fd = new FormData();
+        fd.append("file", input.files[0]);
+        fd.append("username", CREDENTIALS.get("username"));
+        fd.append("password", CREDENTIALS.get("password"));
+
+        try {
+            const res = await fetch(`${API_BASE}/api/upload`, { method: 'POST', body: fd });
+            if(res.ok) { notify("Dosya yüklendi", "green"); input.value=""; refreshFiles(); }
+            else notify("Yükleme başarısız", "red");
+        } catch { notify("Bağlantı hatası", "red"); }
+    }
+
+    async function processFile(f) {
+        if(!confirm(f + " yayına alınsın mı?")) return;
+        const fd = new FormData(); fd.append("filename", f); 
+        fd.append("username", CREDENTIALS.get("username")); fd.append("password", CREDENTIALS.get("password"));
+        notify("İşleniyor...", "blue");
+        fetch(`${API_BASE}/api/process`, { method: 'POST', body: fd }).then(res => {
+            if(res.ok) { notify("Yayınlandı!", "green"); refreshFiles(); } else notify("Hata", "red");
+        });
+    }
+
+    async function deleteFile(f, type) {
+        const action = type === 'production' ? "Yayından kaldırmak" : "Silmek";
+        if(!confirm(`${action} istediğinize emin misiniz?`)) return;
+        
+        const fd = new FormData(); fd.append("filename", f);
+        fd.append("username", CREDENTIALS.get("username")); fd.append("password", CREDENTIALS.get("password"));
+        const ep = type === 'staging' ? '/api/delete' : '/api/delete-production';
+        
+        try { 
+            const res = await fetch(API_BASE + ep, { method: 'POST', body: fd });
+            if(res.ok) { 
+                const msg = type === 'production' ? "Yayından kaldırıldı (Taslağa taşındı)" : "Silindi";
+                notify(msg, "green"); 
+                refreshFiles(); 
+            } else notify("İşlem başarısız", "red");
+        } catch { notify("Hata", "red"); }
+    }
+
+    // --- PROMPT ---
+    async function loadPrompt() {
+        const txt = document.getElementById('promptEditor');
+        const type = document.querySelector('input[name="promptType"]:checked').value;
+        
+        txt.value = "Yükleniyor...";
+        
+        const fd = new FormData();
+        fd.append('username', CREDENTIALS.get('username'));
+        fd.append('password', CREDENTIALS.get('password'));
+        fd.append('prompt_type', type);
+
+        try {
+            const res = await fetch(`${API_BASE}/api/get-prompt`, { method: 'POST', body: fd });
+            const data = await res.json(); 
+            txt.value = data.content;
+        } catch { txt.value = "Hata."; }
+    }
+
+    async function savePrompt() {
+        if(!confirm("Emin misiniz?")) return;
+        const content = document.getElementById('promptEditor').value;
+        const type = document.querySelector('input[name="promptType"]:checked').value;
+        
+        const fd = new FormData();
+        fd.append('username', CREDENTIALS.get('username'));
+        fd.append('password', CREDENTIALS.get('password'));
+        fd.append('content', content);
+        fd.append('prompt_type', type);
+
+        try {
+            const res = await fetch(`${API_BASE}/api/save-prompt`, { method: 'POST', body: fd });
+            if(res.ok) notify("Kaydedildi!", "green"); 
+            else notify("Hata", "red");
+        } catch { notify("Sunucu hatası", "red"); }
+    }
+
+    // --- MODEL ---
+    async function loadModelInfo() {
+        try {
+            const res = await fetch(`${API_BASE}/api/get-model-info`, { method: 'POST', body: CREDENTIALS });
+            const data = await res.json();
+            document.getElementById('currentModelDisplay').innerText = data.current_model;
+            const sel = document.getElementById('modelSelect'); sel.innerHTML = "";
+            data.available_models.forEach(m => {
+                const opt = document.createElement('option'); opt.value = m; opt.text = m;
+                if(m === data.current_model) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        } catch { notify("Model bilgisi alınamadı", "red"); }
+    }
+
+    async function saveModel() {
+        if(!confirm("Sistem yeniden başlatılacak.")) return;
+        const m = document.getElementById('modelSelect').value;
+        const fd = new FormData(); fd.append('model_name', m);
+        fd.append('username', CREDENTIALS.get('username')); fd.append('password', CREDENTIALS.get('password'));
+        notify("Model değiştiriliyor...", "blue");
+        try {
+            const res = await fetch(`${API_BASE}/api/set-model`, { method: 'POST', body: fd });
+            if(res.ok) { notify("Model değişti!", "green"); loadModelInfo(); } else notify("Hata", "red");
+        } catch { notify("Hata", "red"); }
+    }
+
+    // --- LOGLAR ---
+    async function loadLogs() {
+        const div = document.getElementById('logsList');
+        try {
+            const res = await fetch(`${API_BASE}/api/logs`, { method: 'POST', body: CREDENTIALS });
+            const logs = await res.json();
+            if(logs.length === 0) { div.innerHTML = "<div style='color:#999; padding:10px;'>Kayıt yok.</div>"; return; }
+            div.innerHTML = logs.map(l => {
+                let cl = l.action; 
+                
+                // Saat dilimi düzeltmesi
+                let displayDate = l.date;
+                try {
+                    let d = new Date(l.date.replace(" ", "T"));
+                    if (!l.date.includes('Z')) d = new Date(l.date.replace(" ", "T") + "Z");
+                    if (!isNaN(d)) displayDate = d.toLocaleString('tr-TR');
+                } catch(e){}
+                
+                // Türkçeleştirme
+                let actionText = l.action.toUpperCase();
+                switch(l.action) {
+                    case 'upload': actionText = 'TASLAĞA EKLENDİ'; break;
+                    case 'delete': actionText = 'TASLAKTAN SİLİNDİ'; break;
+                    case 'process': actionText = 'YAYINA ALINDI'; break;
+                    case 'unpublish': actionText = 'TASLAĞA ÇEKİLDİ'; break;
+                    case 'update_prompt_fast': actionText = 'HIZLI PROMPT GÜNCELLENDİ'; break;
+                    case 'update_prompt_thinking': actionText = 'DÜŞÜNEN PROMPT GÜNCELLENDİ'; break;
+                    case 'change_model': actionText = 'MODEL DEĞİŞTİ'; break;
+                }
+
+                return `<div class="log-item">
+                    <div><span class="log-action ${cl}">${actionText}</span> <b>${l.filename}</b></div>
+                    <div style="color:#64748b;">${l.user} | ${displayDate}</div>
+                </div>`;
+            }).join('');
+        } catch { div.innerHTML = "Loglar alınamadı."; }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+# Web Framework ve Sunucu
+fastapi
+uvicorn[standard]
+
+# Veri Modelleri ve Ayarlar
+pydantic
+python-dotenv
+
+# HTTP İstekleri (API ve Menu Servisi için)
+requests
+
+# PDF İşleme (Text-Only mod için)
+pymupdf
+
+# Yapay Zeka ve RAG (LangChain Ekosistemi)
+langchain
+langchain-ollama
+langchain-huggingface
+langchain-chroma
+langchain-text-splitters
+langchain-community
+
+# Vektör Veritabanı ve Embedding Bağımlılıkları
+chromadb
+sentence-transformers
+
+# Not: sqlite3 Python'un içinde gömülü olduğu için buraya yazılmaz.

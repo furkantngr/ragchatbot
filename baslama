@@ -1,0 +1,9 @@
+uvicorn main:app --reload
+
+İki ayrı terminalden çalıştırılması gerekli
+uvicorn app.main_chat:app --host 0.0.0.0 --port 8000 ### chatbot başlatma komutu
+uvicorn app.main_admin:app --host 0.0.0.0 --port 8001 ### chatbot admin menüsü başlatma komutu
+
+
+'http://10.90.110.18:8001'
+'http://10.90.110.18:8000/soru-sor'
